@@ -1,0 +1,9 @@
+## Interface: 40300
+## Title : Dynamic Blizzard UI
+## Notes: Auto switch Blizzard UI template based on screen resolution.
+## Author: Kristian Williams
+## Version: 0.1
+## Dependencies: 
+## SavedVariablesPerCharacter: DynamicUIPrefs
+
+DynamicUI.lua
