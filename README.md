@@ -1,6 +1,6 @@
 # Dynamic Blizzard UI
 
-A simple World of Warcraft Addon to automatically switch build in "Edit Mode" profile based on screen resolution.
+A simple World of Warcraft Addon to automatically switch built in "Edit Mode" profile based on screen resolution.
 
 ## How
 
