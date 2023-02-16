@@ -2,28 +2,57 @@ local ADDON_NAME = "DynamicUI"
 
 local DynamicUI = {};
 
-function DynamicUI:SwitchUI()
-    local desired = GetScreenWidth() .. "x" .. GetScreenHeight()
-    local layouts = C_EditMode.GetLayouts()
-
-    print("Looking for profile with name: " .. desired .. ".")
-
-    for l, layout in ipairs(layouts.layouts) do
-        if layout.layoutName == desired then
-            C_EditMode.SetActiveLayout(l)
-            return
-        end
-    end
-end
-
 local events = {
     "ADDON_LOADED",
     "PLAYER_ENTERING_WORLD",
 }
 
-local frame = CreateFrame("Frame", "EventFrame")
-frame:SetScript("OnEvent", function (self, event, ...)
+function DynamicUI:WriteLog(message)
+    print ("[" .. ADDON_NAME .. "] " .. message)
+end
+
+function DynamicUI:SwitchUI()
+    local specific = GetScreenWidth() .. "x" .. GetScreenHeight()
+    local widthOnly = GetScreenWidth() .. "p"
+    local layouts = C_EditMode.GetLayouts()
+
+    DynamicUI:WriteLog("Looking for profile with name: " .. specific .. "...")
+
+    for l, layout in ipairs(layouts.layouts) do
+        if layout.layoutName == specific then
+            DynamicUI:WriteLog("Found profile with index " .. l .. "...")
+            if (layouts.activeLayout ~= l) then
+                DynamicUI:WriteLog("Switching profile...")
+                C_EditMode.SetActiveLayout(l)
+            end
+
+            return
+        end
+    end
+
+    DynamicUI:WriteLog("Looking for profile with name: " .. widthOnly .. "...")
+
+    for l, layout in ipairs(layouts.layouts) do
+        if layout.layoutName == widthOnly then
+            DynamicUI:WriteLog("Found profile with index " .. l .. "...")
+            if (layouts.activeLayout ~= l) then
+                DynamicUI:WriteLog("Switching profile...")
+                C_EditMode.SetActiveLayout(l)
+            end
+
+            return
+        end
+    end
+
+    DynamicUI:WriteLog("Couldn't find a matching profile...")
+end
+
+local Frame = CreateFrame("Frame", "EventFrame")
+Frame:SetScript("OnEvent", function (self, event, ...)
     local c = ...
+
+    DynamicUI:WriteLog("Incoming event: " .. event)
+
     if event == "ADDON_LOADED" and c[0] == ADDON_NAME then
         DynamicUI:SwitchUI()
     end
@@ -34,7 +63,7 @@ frame:SetScript("OnEvent", function (self, event, ...)
 end)
 
 for event in events do
-    frame:RegisterEvent(event)
+    Frame:RegisterEvent(event)
 end
 
 _G[ADDON_NAME] = DynamicUI
