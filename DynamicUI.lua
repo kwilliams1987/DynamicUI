@@ -1,82 +1,81 @@
 local ADDON_NAME = "DynamicUI"
-local DEBUG = true
+local BUILTIN_LAYOUTS = 2
+local DEBUG = false
 
 local DynamicUI = {};
 
+-- Value can be either "true" to always trigger or a function
+-- accepting the arguments of the event which returns true when it should trigger.
 local events = {
-    "ADDON_LOADED",
-    "PLAYER_ENTERING_WORLD",
+    ["DISPLAY_SIZE_CHANGED"] = true,
+    ["PLAYER_ENTERING_WORLD"] = true,
 }
 
 function DynamicUI:WriteLog(message)
     if DEBUG == true then
-        print ("[" .. ADDON_NAME .. "] " .. message)
+        print("[" .. ADDON_NAME .. "] " .. message)
     end
 end
 
 function DynamicUI:SwitchUI()
     local layouts = C_EditMode.GetLayouts()
-    local uiScale = 1
-    local width = math.floor(GetScreenWidth())
-    local height = math.floor(GetScreenHeight())
+    local width, height = GetPhysicalScreenSize()
 
-    if GetCVar("useUiScale") == "1" then
-        uiScale = math.floor(UIParent:GetEffectiveScale())
-    end
+    local strict = width .. "x" .. height
+    local loose = height .. "p"
+    local looseMatch = nil
 
-    local specific = math.floor(width / uiScale) .. "x" .. math.floor(width / uiScale)
-    local widthOnly = math.floor(width / uiScale) .. "p"
+    DynamicUI:WriteLog("Looking for matching profiles: " .. strict .. " or " .. loose .. "...")
 
-    DynamicUI:WriteLog("Native resolution: " .. GetScreenWidth() .. "x" .. GetScreenHeight())
-    DynamicUI:WriteLog("Looking for profile with name: " .. specific .. " (" .. (uiScale * 100) .. "% scaling)...")
+    for l, layout in pairs(layouts.layouts) do
+        DynamicUI:WriteLog("> Comparing: " .. strict .. " to: " .. layout.layoutName .. "...")
+        local index = l + BUILTIN_LAYOUTS
 
-    for l, layout in ipairs(layouts.layouts) do
-        if layout.layoutName == specific then
-            DynamicUI:WriteLog("Found profile with index " .. l .. "...")
+        if layout.layoutName == strict then
+            DynamicUI:WriteLog("Using strict profile match " .. strict .. "...")
+            DynamicUI:WriteLog("> Comparing to: " .. layout.layoutName)
 
-            if (layouts.activeLayout ~= l) then
+            DynamicUI:WriteLog("> Comparing: " .. layouts.activeLayout .. " to: " .. index .. "...")
+            if (layouts.activeLayout ~= index) then
                 DynamicUI:WriteLog("Switching profile...")
-                C_EditMode.SetActiveLayout(layout)
+                C_EditMode.SetActiveLayout(index)
             end
 
             return
         end
+
+        DynamicUI:WriteLog("> Comparing: " .. loose .. " to: " .. layout.layoutName .. "...")
+        if layout.layoutName == loose then
+            DynamicUI:WriteLog("Found potential loose match with index " .. index .. "...")
+            looseMatch = index
+        end
     end
 
-    DynamicUI:WriteLog("Looking for profile with name: " .. widthOnly .. "...")
+    if looseMatch ~= nil then
+        DynamicUI:WriteLog("Using loose profile match " .. loose .. "...")
 
-    for l, layout in ipairs(layouts.layouts) do
-        if layout.layoutName == widthOnly then
-            DynamicUI:WriteLog("Found profile with index " .. l .. "...")
-
-            if (layouts.activeLayout ~= l) then
-                DynamicUI:WriteLog("Switching profile...")
-                C_EditMode.SetActiveLayout(layout)
-            end
-
-            return
+        DynamicUI:WriteLog("> Comparing: " .. layouts.activeLayout .. " to: " .. looseMatch .. "...")
+        if (layouts.activeLayout ~= looseMatch) then
+            DynamicUI:WriteLog("Switching profile...")
+            C_EditMode.SetActiveLayout(looseMatch)
         end
+
+        return
     end
 
     DynamicUI:WriteLog("Couldn't find a matching profile...")
 end
 
 local Frame = CreateFrame("Frame", "EventFrame")
-Frame:SetScript("OnEvent", function (self, event, ...)
-    local c, d = ...
-
-    if (event == "ADDON_LOADED" and c == ADDON_NAME)
-    or (event == "PLAYER_ENTERING_WORLD" and d == true)
-    or (event == "DISPLAY_SIZE_CHANGED")
-    or (event == "CVAR_UPDATE" and (c == "RenderScale" or c == "uiScale" or c == "useUiScale")) then
+Frame:SetScript("OnEvent", function(self, event, ...)
+    if events[event] ~= nil and (events[event] == true or events[event](...)) then
         DynamicUI:WriteLog("Triggered on " .. event .. ".")
         DynamicUI:SwitchUI()
     end
 end)
 
-Frame:RegisterEvent("ADDON_LOADED")
-Frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-Frame:RegisterEvent("DISPLAY_SIZE_CHANGED")
-Frame:RegisterEvent("CVAR_UPDATE")
+for event, _ in pairs(events) do
+    Frame:RegisterEvent(event)
+end
 
 _G[ADDON_NAME] = DynamicUI

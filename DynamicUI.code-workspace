@@ -1,0 +1,14 @@
+{
+    "folders": [
+        {
+            "name": "AddOn",
+            "path": "."
+        }
+    ],
+    "extensions": {
+        "recommendations": [
+            "septh.wow-bundle",
+            "ketho.wow-api"
+        ]
+    }
+}

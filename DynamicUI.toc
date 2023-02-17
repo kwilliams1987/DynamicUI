@@ -4,6 +4,6 @@
 ## Author: Kristian Williams
 ## Version: 0.1
 ## Dependencies: 
-## SavedVariablesPerCharacter: DynamicUIPrefs
+## SavedVariablesPerCharacter: 
 
 DynamicUI.lua
