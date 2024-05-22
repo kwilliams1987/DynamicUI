@@ -1,8 +1,8 @@
-## Interface: 100100
+## Interface: 100207
 ## Title : Dynamic Blizzard UI
 ## Notes: Auto switch Blizzard UI template based on screen resolution.
 ## Author: Kristian Williams
-## Version: 1.0.1
+## Version: 1.0.2
 ## Dependencies: 
 ## SavedVariablesPerCharacter: DynamicUISettings
 
