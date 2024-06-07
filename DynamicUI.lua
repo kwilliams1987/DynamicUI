@@ -66,7 +66,7 @@ function DynamicUI:SwitchUI()
     DynamicUI:WriteLog("Couldn't find a matching profile...")
 end
 
-local Frame = CreateFrame("Frame", "EventFrame")
+local Frame = CreateFrame("EventFrame", "EventFrame")
 Frame:SetScript("OnEvent", function(self, event, ...)
     if events[event] ~= nil and (events[event] == true or events[event](...)) then
         DynamicUI:WriteLog("Triggered on " .. event .. ".")
